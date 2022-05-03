@@ -1,45 +1,44 @@
-import { InMemorySigner } from '@taquito/signer';
-import { TezosToolkit, MichelsonMap } from '@taquito/taquito';
-import shifumi from '../compiled/shifumi.json';
-import * as dotenv from 'dotenv'
+import dotenv from "dotenv";
+import { MichelsonMap, TezosToolkit } from "@taquito/taquito";
+import { InMemorySigner } from "@taquito/signer";
+import { buf2hex } from "@taquito/utils";
+import code from "../compiled/shifumi.json";
+import metadata from "./metadata.json";
 
-dotenv.config(({path:__dirname+'/.env'}))
+// Read environment variables from .env file
+dotenv.config();
 
-const rpc = process.env.RPC; //"http://127.0.0.1:8732"
-const pk: string = process.env.ADMIN_PK || undefined;
-const Tezos = new TezosToolkit(rpc);
-const signer = new InMemorySigner(pk);
-Tezos.setProvider({ signer: signer })
+console.log(process.env.NODE_URL)
 
-const admin = process.env.ADMIN_ADDRESS;
-let shifumi_address = process.env.SHIFUMI_CONTRACT_ADDRESS || undefined;
+// Initialize RPC connection
+const Tezos = new TezosToolkit(process.env.NODE_URL);
 
-async function orig() {
-
-    let shifumi_store = {
-        'next_session' : 0,
-        'sessions' : new MichelsonMap(),
-    }
-
+// Deploy to configured node with configured secret key
+const deploy = async () => {
     try {
-        // Originate an Random contract
-        if (shifumi_address === undefined) {
-            const shifumi_originated = await Tezos.contract.originate({
-                code: shifumi,
-                storage: shifumi_store,
-            })
-            console.log(`Waiting for SHIFUMI ${shifumi_originated.contractAddress} to be confirmed...`);
-            await shifumi_originated.confirmation(2);
-            console.log('confirmed SHIFUMI: ', shifumi_originated.contractAddress);
-            shifumi_address = shifumi_originated.contractAddress;              
-        }
-       
-        console.log("./tezos-client remember contract SHIFUMI", shifumi_address)
-        // console.log("tezos-client transfer 0 from ", admin, " to ", advisor_address, " --entrypoint \"executeAlgorithm\" --arg \"Unit\"")
+        const signer = await InMemorySigner.fromSecretKey(
+            process.env.SECRET_KEY
+        );
 
-    } catch (error: any) {
-        console.log(error)
+        Tezos.setProvider({ signer });
+
+        // create a JavaScript object to be used as initial storage
+        // https://tezostaquito.io/docs/originate/#a-initializing-storage-using-a-plain-old-javascript-object
+        const storage = {
+            metadata: MichelsonMap.fromLiteral({
+                "": buf2hex(Buffer.from("tezos-storage:contents")),
+                contents: buf2hex(Buffer.from(JSON.stringify(metadata))),
+            }),
+            next_session: 0,
+            sessions: new MichelsonMap(),
+        };
+
+        const op = await Tezos.contract.originate({ code, storage });
+        await op.confirmation();
+        console.log(`[OK] ${op.contractAddress}`);
+    } catch (e) {
+        console.log(e);
     }
-}
+};
 
-orig();
+deploy();
