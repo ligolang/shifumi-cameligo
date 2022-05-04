@@ -56,6 +56,7 @@ make test
 The repository provides a deployment script for deploying the smart contract Shifumi.
 
 ```sh
+make sandbox-start
 make deploy
 ```
 
