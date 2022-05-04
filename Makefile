@@ -49,3 +49,6 @@ deploy: node_modules
 node_modules:
 	@echo "Install node modules"
 	@cd deploy && npm install
+
+sandbox-start: ## start sandbox
+	@./scripts/run-sandbox
