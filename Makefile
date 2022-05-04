@@ -9,6 +9,7 @@ help:
 	@echo  '  compile         - Compiles smart contract Shifumi'
 	@echo  '  test            - Run integration tests (written in Ligo)'
 	@echo  '  deploy          - Deploy smart contract Shifumi (typescript using Taquito)'
+	@echo  '  sandbox-start   - Run a local sandbox node'
 	@echo  ''
 
 all: clean compile test
@@ -50,5 +51,5 @@ node_modules:
 	@echo "Install node modules"
 	@cd deploy && npm install
 
-sandbox-start: ## start sandbox
+sandbox-start:
 	@./scripts/run-sandbox
