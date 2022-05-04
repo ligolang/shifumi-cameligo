@@ -1,20 +1,25 @@
 {
-    "name": "compiled",
-    "version": "1.0.0",
-    "description": "",
-    "main": "deploy.js",
-    "scripts": {
-      "test": "echo \"Error: no test specified\" && exit 1",
-      "storage": "echo \"START Formatting storage...\" && tsc initStorage.ts --resolveJsonModule --esModuleInterop && node initStorage.js > storage.json && echo \"Storage updated in storage.json END\""
-    },
-    "author": "",
-    "license": "ISC",
-    "dependencies": {
-      "@taquito/signer": "^10.2.1",
-      "@taquito/taquito": "^10.2.0",
-      "dotenv": "^10.0.0"
-    },
-    "devDependencies": {
-      "typescript": "^4.4.4"
-    }
+  "name": "shifumi",
+  "version": "1.0.0",
+  "description": "An example shifumi contract on Tezos written in Ligolang.",
+  "scripts": {
+    "lint": "eslint . --ext .ts"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "@taquito/signer": "^12.0.0",
+    "@taquito/taquito": "^12.0.0",
+    "dotenv": "^16.0.0",
+    "ts-node": "^10.7.0",
+    "typescript": "^4.6.3"
+  },
+  "devDependencies": {
+    "@typescript-eslint/eslint-plugin": "^5.17.0",
+    "@typescript-eslint/parser": "^5.17.0",
+    "eslint": "^8.12.0",
+    "eslint-config-prettier": "^8.5.0",
+    "eslint-plugin-prettier": "^4.0.0"
   }
+}

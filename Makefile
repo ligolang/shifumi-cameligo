@@ -1,4 +1,4 @@
-ligo_compiler=docker run --rm -v "$$PWD":"$$PWD" -w "$$PWD" ligolang/ligo:next
+ligo_compiler=docker run --rm -v "$$PWD":"$$PWD" -w "$$PWD" ligolang/ligo:0.41.0
 PROTOCOL_OPT=--protocol ithaca
 JSON_OPT=--michelson-format json
 
@@ -9,6 +9,7 @@ help:
 	@echo  '  compile         - Compiles smart contract Shifumi'
 	@echo  '  test            - Run integration tests (written in Ligo)'
 	@echo  '  deploy          - Deploy smart contract Shifumi (typescript using Taquito)'
+	@echo  '  sandbox-start   - Run a local sandbox node'
 	@echo  ''
 
 all: clean compile test
@@ -33,21 +34,22 @@ clean:
 
 test: test_ligo
 
-test_ligo: test/test.mligo 
+test_ligo: test/test.mligo
 	@echo "Running integration tests"
 	@$(ligo_compiler) run test $^ $(PROTOCOL_OPT)
 
-# test_ligo_2: test/test2.mligo 
-# 	@echo "Running integration tests (fail)"
-# 	@$(ligo_compiler) run test $^ $(PROTOCOL_OPT)
-
-deploy: node_modules deploy.js
+deploy: node_modules
 	@echo "Deploying contract"
-	@node deploy/deploy.js
-
-deploy.js: 
-	@cd deploy && tsc deploy.ts --resolveJsonModule -esModuleInterop
+	@if [ ! -f ./deploy/.env ]; then cp deploy/.env.dist deploy/.env ; fi
+	@if [ ! -f ./deploy/metadata.json ]; then cp deploy/metadata.json.dist \
+        deploy/metadata.json ; fi
+	@cd ./deploy \
+        && npx ts-node deploy.ts \
+        && cd -
 
 node_modules:
 	@echo "Install node modules"
 	@cd deploy && npm install
+
+sandbox-start:
+	@./scripts/run-sandbox

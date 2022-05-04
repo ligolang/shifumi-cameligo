@@ -1,0 +1,19 @@
+{
+    "name": "Shifumi Example",
+    "description": "An Example Shifumi Contract",
+    "version": "beta",
+    "license": {
+        "name": "MIT"
+    },
+    "authors": [
+        "smart-chain <tezos@smart-chain.fr>"
+    ],
+    "homepage": "https://github.com/ligolang/shifumi-cameligo",
+    "source": {
+        "tools": "cameligo",
+        "location": "https://github.com/smart-chain-fr/ligolib/dao/contracts"
+    },
+    "interfaces": [
+        "TZIP-016"
+    ]
+}

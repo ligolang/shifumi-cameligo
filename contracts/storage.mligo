@@ -4,6 +4,7 @@
 #import "conditions.mligo" "Conditions"
 
 type t = {
+    metadata: (string, bytes) big_map;
     next_session : nat;
     sessions : (nat, Session.t) map
 }
