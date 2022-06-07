@@ -11,4 +11,4 @@ let check_session_end(result : Session.result) (expected : Session.result) : uni
 
 [@inline]
 let check_asleep (current_session : Session.t) : unit = 
-    assert_with_error (Tezos.now > current_session.asleep) Errors.must_wait_10_min
+    assert_with_error ((Tezos.get_now ()) > current_session.asleep) Errors.must_wait_10_min

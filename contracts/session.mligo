@@ -35,7 +35,7 @@ type t = {
 [@inline]
 let new (total_rounds: nat) (players: player set): t =
     { 
-      asleep=Tezos.now + 600; 
+      asleep=(Tezos.get_now ()) + 600; 
       total_rounds=total_rounds; 
       players=players; 
       current_round=1n; 
@@ -59,11 +59,11 @@ let get_decoded_round_actions (roundId : nat) (session : t) : decoded_player_act
 
 [@inline]
 let update_rounds (session: t) (rounds: (round, player_actions) map): t =
-    { session with asleep=Tezos.now + 600; rounds=rounds }    
+    { session with asleep=(Tezos.get_now ()) + 600; rounds=rounds }    
 
 [@inline]
 let update_decoded_rounds (session: t) (decoded_rounds: (round, decoded_player_actions) map): t =
-    { session with asleep=Tezos.now + 600; decoded_rounds=decoded_rounds }    
+    { session with asleep=(Tezos.get_now ()) + 600; decoded_rounds=decoded_rounds }    
 
 [@inline]
 let find_missing (type a) (pactions, all_players : a an_action list * player set) =
