@@ -30,7 +30,7 @@ let find_me_a_name(sessionId, missing_players, current_session, store :nat * Ses
 // allow players to claim victory if opponent is a troller (refuse to play)
 let stopSession(param, store : Parameter.stopsession_param * Storage.t) : operation list * Storage.t =
     let current_session : Session.t = Storage.getSession(param.sessionId, store) in
-    let _check_players : unit = Conditions.check_player_authorized Tezos.sender current_session.players Errors.user_not_allowed_to_stop_session in
+    let _check_players : unit = Conditions.check_player_authorized (Tezos.get_sender ()) current_session.players Errors.user_not_allowed_to_stop_session in
     let _check_session_end : unit = Conditions.check_session_end current_session.result Inplay in
     let _check_asleep : unit = Conditions.check_asleep(current_session) in
     let current_round = match Map.find_opt current_session.current_round current_session.rounds with
@@ -56,11 +56,12 @@ let stopSession(param, store : Parameter.stopsession_param * Storage.t) : operat
 // once the chest is created, the player send its chest to the smart contract
 let play(param, store : Parameter.play_param * Storage.t) : operation list * Storage.t =
     let current_session : Session.t = Storage.getSession(param.sessionId, store) in
-    let _check_players : unit = Conditions.check_player_authorized Tezos.sender current_session.players Errors.user_not_allowed_to_play_in_session in
+    let sender = Tezos.get_sender () in
+    let _check_players : unit = Conditions.check_player_authorized sender current_session.players Errors.user_not_allowed_to_play_in_session in
     let _check_session_end : unit = Conditions.check_session_end current_session.result Inplay in
     let _check_round : unit = assert_with_error (current_session.current_round = param.roundId) Errors.wrong_current_round in
     // register action
-    let new_rounds = Session.add_in_rounds current_session.current_round current_session Tezos.sender param.action in
+    let new_rounds = Session.add_in_rounds current_session.current_round current_session sender param.action in
 
     let new_session : Session.t = Session.update_rounds current_session new_rounds in
     let new_storage : Storage.t = Storage.update_sessions store param.sessionId new_session in
@@ -71,7 +72,8 @@ let play(param, store : Parameter.play_param * Storage.t) : operation list * Sto
 let reveal (param, store : Parameter.reveal_param * Storage.t) : operation list * Storage.t =
     // players can reveal only if all players have sent their chest
     let current_session : Session.t = Storage.getSession(param.sessionId, store) in
-    let _check_players : unit = Conditions.check_player_authorized Tezos.sender current_session.players Errors.user_not_allowed_to_reveal_in_session in
+    let sender = Tezos.get_sender () in
+    let _check_players : unit = Conditions.check_player_authorized sender current_session.players Errors.user_not_allowed_to_reveal_in_session in
     let _check_session_end : unit = Conditions.check_session_end current_session.result Inplay in
     let _check_round : unit = assert_with_error (current_session.current_round = param.roundId) Errors.wrong_current_round in
 
@@ -82,10 +84,10 @@ let reveal (param, store : Parameter.reveal_param * Storage.t) : operation list 
     let numberOfActions : nat = List.fold listsize current_round_actions 0n in
     let _check_all_players_have_played : unit = assert_with_error (numberOfPlayers = numberOfActions) Errors.missing_player_chest in
     // retrieve user chest (fails if not found)
-    let user_chest : chest = Session.get_chest_exn Tezos.sender (Some(current_round_actions)) in
+    let user_chest : chest = Session.get_chest_exn sender (Some(current_round_actions)) in
     // decode action
     let decoded_action : Session.action = Session.decode_chest_exn param.player_key user_chest param.player_secret in
-    let new_decoded_rounds = Session.add_in_decoded_rounds current_session.current_round current_session Tezos.sender decoded_action in
+    let new_decoded_rounds = Session.add_in_decoded_rounds current_session.current_round current_session sender decoded_action in
     let new_current_session : Session.t = Session.update_decoded_rounds current_session new_decoded_rounds in
 
     // compute board if all players have revealed
