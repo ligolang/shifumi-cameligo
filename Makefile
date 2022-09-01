@@ -1,5 +1,5 @@
-ligo_compiler=docker run --rm -v "$$PWD":"$$PWD" -w "$$PWD" ligolang/ligo:0.41.0
-PROTOCOL_OPT=--protocol ithaca
+ligo_compiler=docker run --rm -v "$$PWD":"$$PWD" -w "$$PWD" ligolang/ligo:stable
+PROTOCOL_OPT=
 JSON_OPT=--michelson-format json
 
 help:
@@ -40,7 +40,6 @@ test_ligo: test/test.mligo
 
 deploy: node_modules
 	@echo "Deploying contract"
-	@if [ ! -f ./deploy/.env ]; then cp deploy/.env.dist deploy/.env ; fi
 	@if [ ! -f ./deploy/metadata.json ]; then cp deploy/metadata.json.dist \
         deploy/metadata.json ; fi
 	@cd ./deploy \
