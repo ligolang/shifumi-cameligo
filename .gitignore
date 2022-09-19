@@ -3,3 +3,5 @@ node_modules
 deploy/deploy.js
 deploy/metadata.json
 deploy/.env
+**/compiled
+**/node_modules
