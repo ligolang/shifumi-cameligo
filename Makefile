@@ -1,6 +1,6 @@
-ligo_compiler=docker run --rm -v "$$PWD":"$$PWD" -w "$$PWD" ligolang/ligo:stable
-PROTOCOL_OPT=
-JSON_OPT=--michelson-format json
+ligo_compiler?=docker run --rm -v "$$PWD":"$$PWD" -w "$$PWD" ligolang/ligo:stable
+PROTOCOL_OPT?=
+JSON_OPT?=--michelson-format json
 
 help:
 	@echo  'Usage:'
