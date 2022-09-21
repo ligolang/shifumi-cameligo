@@ -40,6 +40,10 @@ The repository provides a Makefile for compiling the smart contract Shifumi.
 ```sh
 make compile
 ```
+You can also override `make` parameters by running :
+```sh
+make compile ligo_compiler=<LIGO_EXECUTABLE> PROTOCOL_OPT="--protocol <PROTOCOL>"
+```
 
 It compiles the smart contract in TZ file and also in the JSON format
 
