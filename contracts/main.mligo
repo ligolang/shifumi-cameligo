@@ -52,8 +52,8 @@ let stopSession(param, store : Parameter.stopsession_param * Storage.t) : operat
             (([]: operation list), store )
 
 
-// the player create a chest with the chosen action (Stone | Paper | Cisor) in backend
-// once the chest is created, the player send its chest to the smart contract
+// the player create a bytes with the chosen action (Stone | Paper | Cisor) in backend
+// once the bytes is created, the player send its bytes to the smart contract
 let play(param, store : Parameter.play_param * Storage.t) : operation list * Storage.t =
     let current_session : Session.t = Storage.getSession(param.sessionId, store) in
     let sender = Tezos.get_sender () in
@@ -68,9 +68,9 @@ let play(param, store : Parameter.play_param * Storage.t) : operation list * Sto
     (([]: operation list), new_storage)
 
 
-// Once all players have committed their chest, they must reveal the content of their chest
+// Once all players have committed their bytes, they must reveal the content of their bytes
 let reveal (param, store : Parameter.reveal_param * Storage.t) : operation list * Storage.t =
-    // players can reveal only if all players have sent their chest
+    // players can reveal only if all players have sent their bytes
     let current_session : Session.t = Storage.getSession(param.sessionId, store) in
     let sender = Tezos.get_sender () in
     let _check_players : unit = Conditions.check_player_authorized sender current_session.players Errors.user_not_allowed_to_reveal_in_session in
@@ -82,11 +82,11 @@ let reveal (param, store : Parameter.reveal_param * Storage.t) : operation list 
     let numberOfPlayers : nat = Set.cardinal current_session.players in
     let listsize (acc, _elt: nat * Session.player_action) : nat = acc + 1n in
     let numberOfActions : nat = List.fold listsize current_round_actions 0n in
-    let _check_all_players_have_played : unit = assert_with_error (numberOfPlayers = numberOfActions) Errors.missing_player_chest in
-    // retrieve user chest (fails if not found)
-    let user_chest : chest = Session.get_chest_exn sender (Some(current_round_actions)) in
+    let _check_all_players_have_played : unit = assert_with_error (numberOfPlayers = numberOfActions) Errors.missing_player_bytes in
+    // retrieve user bytes (fails if not found)
+    let user_bytes : bytes = Session.get_bytes_exn sender (Some(current_round_actions)) in
     // decode action
-    let decoded_action : Session.action = Session.decode_chest_exn param.player_key user_chest param.player_secret in
+    let decoded_action : Session.action = Session.decode_bytes_exn param.player_key user_bytes param.player_secret in
     let new_decoded_rounds = Session.add_in_decoded_rounds current_session.current_round current_session sender decoded_action in
     let new_current_session : Session.t = Session.update_decoded_rounds current_session new_decoded_rounds in
 
