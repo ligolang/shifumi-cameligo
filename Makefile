@@ -1,6 +1,6 @@
 ligo_compiler=docker run --rm -v "$$PWD":"$$PWD" -w "$$PWD" ligolang/ligo:stable
 protocol_opt=
-JSON_OPT=--michelson-format json
+json_opt=--michelson-format json
 
 help:
 	@echo  'Usage:'
@@ -26,7 +26,7 @@ shifumi.tz: contracts/main.mligo
 shifumi.json: contracts/main.mligo
 	@echo "Compiling smart contract to Michelson in JSON format"
 	@mkdir -p compiled
-	@$(ligo_compiler) compile contract $^ $(JSON_OPT) -e main $(protocol_opt) > compiled/$@
+	@$(ligo_compiler) compile contract $^ $(json_opt) -e main $(protocol_opt) > compiled/$@
 
 clean:
 	@echo "Removing Michelson files"
