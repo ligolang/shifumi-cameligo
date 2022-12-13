@@ -10,7 +10,7 @@ type 'a an_action = {
     action : 'a 
 }
 
-type player_action = chest an_action
+type player_action = bytes an_action
 type decoded_player_action = action an_action
 
 type player_actions = player_action list
@@ -24,7 +24,7 @@ type t = {
     total_rounds : nat;
     players : player set;
     current_round : nat;
-    rounds : chest rounds;
+    rounds : bytes rounds;
     decoded_rounds : action rounds;
     board : board;
     result : result;
@@ -39,7 +39,7 @@ let new (total_rounds: nat) (players: player set): t =
       total_rounds=total_rounds; 
       players=players; 
       current_round=1n; 
-      rounds=(Map.empty : chest rounds);
+      rounds=(Map.empty : bytes rounds);
       decoded_rounds=(Map.empty : action rounds); 
       board=(Map.empty : board); 
       result=Inplay 
@@ -48,13 +48,13 @@ let new (total_rounds: nat) (players: player set): t =
 [@inline]
 let get_round_actions (roundId : nat) (session : t) : player_actions =
     match Map.find_opt roundId session.rounds with 
-    | None -> failwith(Errors.missing_all_chests)
+    | None -> failwith(Errors.missing_all_bytes)
     | Some (round_actions) -> round_actions 
 
 [@inline]
 let get_decoded_round_actions (roundId : nat) (session : t) : decoded_player_actions =
     match Map.find_opt roundId session.decoded_rounds with 
-    | None -> failwith(Errors.missing_all_decoded_chests)
+    | None -> failwith(Errors.missing_all_decoded_bytes)
     | Some (decoded_round_actions) -> decoded_round_actions 
 
 [@inline]
@@ -90,7 +90,7 @@ let add_in_decoded_rounds (roundId : nat) (session : t) (user : address) (decode
         Map.update roundId (Some({player=user; action=decoded_action} :: decodedPlayerActions)) session.decoded_rounds
 
 [@inline]
-let add_in_rounds (roundId : nat) (session : t) (user : address) (action: chest) : chest rounds =
+let add_in_rounds (roundId : nat) (session : t) (user : address) (action: bytes) : bytes rounds =
     match Map.find_opt roundId session.rounds with 
     | None -> Map.add roundId [{player=user; action=action}] session.rounds
     | Some (playerActions) ->
@@ -98,33 +98,29 @@ let add_in_rounds (roundId : nat) (session : t) (user : address) (action: chest)
         Map.update roundId (Some({player=user; action=action} :: playerActions)) session.rounds
 
 [@inline]
-let get_chest_exn (user : address) (actions_opt : player_actions option) : chest =
-    let rec find_chest(addr, lst_opt : address * player_actions option) : chest option =
+let get_bytes_exn (user : address) (actions_opt : player_actions option) : bytes =
+    let rec find_bytes(addr, lst_opt : address * player_actions option) : bytes option =
         match lst_opt with
-        | None -> (None : chest option)
+        | None -> (None : bytes option)
         | Some lst -> (match List.head_opt lst with
-            | None -> (None : chest option) 
+            | None -> (None : bytes option) 
             | Some elt -> if (elt.player = addr) then
-                    (Some(elt.action) : chest option)
+                    (Some(elt.action) : bytes option)
                 else
-                    find_chest(addr, (List.tail_opt lst)))
+                    find_bytes(addr, (List.tail_opt lst)))
     in
-    match find_chest(user, actions_opt) with
-    | None -> (failwith(Errors.missing_sender_chest) : chest)
+    match find_bytes(user, actions_opt) with
+    | None -> (failwith(Errors.missing_sender_bytes) : bytes)
     | Some ch -> ch
 
 [@inline]
-let decode_chest_exn (player_key: chest_key) (user_chest: chest) (player_secret: nat): action = 
-    let decoded_payload =
-        match Tezos.open_chest player_key user_chest player_secret with
-        | Ok_opening b -> b
-        | Fail_timelock -> (failwith(Errors.failed_to_open_chest) : bytes)
-        | Fail_decrypt -> (failwith(Errors.failed_to_open_chest) : bytes)
-    in
-    match (Bytes.unpack decoded_payload : action option) with
-    | None -> failwith(Errors.failed_to_unpack_payload)
-    | Some x -> x
-    
+let decode_bytes_exn (player_action: bytes) (user_bytes: bytes) (player_secret: nat): action = 
+    let hashed = Crypto.sha512 (Bytes.pack (player_action, player_secret)) in
+    if hashed = user_bytes
+    then ( match (Bytes.unpack player_action : action option) with
+           | None -> failwith(Errors.failed_to_unpack_payload)
+           | Some x -> x )
+    else failwith(Errors.failed_to_open_bytes)
 
 [@inline]
 let resolve(first, second : decoded_player_action * decoded_player_action) : player option = 

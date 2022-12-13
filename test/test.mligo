@@ -8,6 +8,9 @@ let assert_string_failure (res : test_exec_result) (expected : string) : unit =
   | Fail (Other s) -> failwith s
   | Success _gas -> failwith "contract did not failed but was expected to fail"
 
+let create_bytes (payload: bytes) (secret:nat) : (bytes * bytes) =
+    (Crypto.sha512 (Bytes.pack (payload, secret)), payload)
+
 let test =
     let () = Test.reset_state 3n ([] : tez list) in
     let alice: address = Test.nth_bootstrap_account 0 in
@@ -77,10 +80,10 @@ let test =
         let bob_payload_v : SHIFUMI.Storage.Session.action = Paper in
         let bob_payload : bytes = Bytes.pack bob_payload_v in
         let bob_secret_1 : nat = 10n in
-        let (bob_chest,bob_chest_key) = Test.create_chest bob_payload bob_secret_1 in
-        let play_args : SHIFUMI.Parameter.play_param = {sessionId=current_session_id; roundId=1n; action=bob_chest} in
+        let (bob_bytes,bob_bytes_key) = create_bytes bob_payload bob_secret_1 in
+        let play_args : SHIFUMI.Parameter.play_param = {sessionId=current_session_id; roundId=1n; action=bob_bytes} in
         let _ = Test.transfer_to_contract_exn x (Play(play_args)) 0mutez in
-        // verify round register bob chest
+        // verify round register bob bytes
         let session_0 : SHIFUMI.Storage.Session.t = get_session_from_storage(addr, current_session_id) in
         let () = assert (session_0.current_round = 1n) in
         let () = assert (session_0.total_rounds = 1n) in
@@ -91,8 +94,8 @@ let test =
         let () = assert (nb_of_elements = 1n) in
         let bob_action : SHIFUMI.Storage.Session.player_action = Option.unopt (List.head_opt session_0_round_1) in
         let () = assert (bob_action.player = bob) in
-        // cannot compare chest
-        //let () = assert (bob_action.action = bob_chest) in
+        // cannot compare bytes
+        //let () = assert (bob_action.action = bob_bytes) in
         let session_0_decoded_round_1 : SHIFUMI.Storage.Session.decoded_player_actions = get_decoded_round_from_session(session_0, 1n) in
         let count_ (acc, _: nat * SHIFUMI.Storage.Session.decoded_player_action) : nat = acc + 1n in
         let nb_of_decoded_elements : nat = List.fold_left count_ 0n session_0_decoded_round_1 in
@@ -104,10 +107,10 @@ let test =
         let alice_payload_v : SHIFUMI.Storage.Session.action = Stone in
         let alice_payload : bytes = Bytes.pack alice_payload_v in
         let alice_secret_1 : nat = 654843n in
-        let (alice_chest,alice_chest_key) = Test.create_chest alice_payload alice_secret_1 in
-        let play_args : SHIFUMI.Parameter.play_param = {sessionId=current_session_id; roundId=1n; action=alice_chest} in
+        let (alice_bytes,alice_bytes_key) = create_bytes alice_payload alice_secret_1 in
+        let play_args : SHIFUMI.Parameter.play_param = {sessionId=current_session_id; roundId=1n; action=alice_bytes} in
         let _ = Test.transfer_to_contract_exn x (Play(play_args)) 0mutez in
-        // verify round 1 register alice chest
+        // verify round 1 register alice bytes
         let session_0 : SHIFUMI.Storage.Session.t = get_session_from_storage(addr, current_session_id) in
         let () = assert (session_0.current_round = 1n) in
         let () = assert (session_0.total_rounds = 1n) in
@@ -123,7 +126,7 @@ let test =
         let reveal_args : SHIFUMI.Parameter.reveal_param = {
             sessionId=current_session_id;
             roundId=1n;
-            player_key=alice_chest_key;
+            player_key=alice_bytes_key;
             player_secret=alice_secret_1
         } in
         let _ = Test.transfer_to_contract_exn x (RevealPlay(reveal_args)) 0mutez in
@@ -143,7 +146,7 @@ let test =
         let bob_reveal_args : SHIFUMI.Parameter.reveal_param = {
             sessionId=current_session_id;
             roundId=1n;
-            player_key=bob_chest_key;
+            player_key=bob_bytes_key;
             player_secret=bob_secret_1
         } in
         let _ = Test.transfer_to_contract_exn x (RevealPlay(bob_reveal_args)) 0mutez in
@@ -178,8 +181,8 @@ let test =
         let bob_payload_v : SHIFUMI.Storage.Session.action = Paper in
         let bob_payload : bytes = Bytes.pack bob_payload_v in
         let bob_secret_1 : nat = 10n in
-        let (bob_chest,bob_chest_key) = Test.create_chest bob_payload bob_secret_1 in
-        let play_args : SHIFUMI.Parameter.play_param = {sessionId=current_session_id; roundId=1n; action=bob_chest} in
+        let (bob_bytes,bob_bytes_key) = create_bytes bob_payload bob_secret_1 in
+        let play_args : SHIFUMI.Parameter.play_param = {sessionId=current_session_id; roundId=1n; action=bob_bytes} in
         //let () = Test.log(play_args) in
         let _ = Test.transfer_to_contract_exn x (Play(play_args)) 0mutez in
 
@@ -189,8 +192,8 @@ let test =
         let alice_payload_v : SHIFUMI.Storage.Session.action = Stone in
         let alice_payload : bytes = Bytes.pack alice_payload_v in
         let alice_secret_1 : nat = 654843n in
-        let (alice_chest,alice_chest_key) = Test.create_chest alice_payload alice_secret_1 in
-        let play_args : SHIFUMI.Parameter.play_param = {sessionId=current_session_id; roundId=1n; action=alice_chest} in
+        let (alice_bytes,alice_bytes_key) = create_bytes alice_payload alice_secret_1 in
+        let play_args : SHIFUMI.Parameter.play_param = {sessionId=current_session_id; roundId=1n; action=alice_bytes} in
         //let () = Test.log(play_args) in
         let _ = Test.transfer_to_contract_exn x (Play(play_args)) 0mutez in
 
@@ -201,8 +204,8 @@ let test =
         let reveal_args : SHIFUMI.Parameter.reveal_param = {
             sessionId=current_session_id;
             roundId=1n;
-            //player_chest=alice_chest;
-            player_key=alice_chest_key;
+            //player_bytes=alice_bytes;
+            player_key=alice_bytes_key;
             player_secret=alice_secret_1
         } in
         //let () = Test.log(reveal_args) in
@@ -215,8 +218,8 @@ let test =
         let bob_reveal_args : SHIFUMI.Parameter.reveal_param = {
             sessionId=current_session_id;
             roundId=1n;
-            //player_chest=bob_chest;
-            player_key=bob_chest_key;
+            //player_bytes=bob_bytes;
+            player_key=bob_bytes_key;
             player_secret=bob_secret_1
         } in
         //let () = Test.log(reveal_args) in
@@ -255,8 +258,8 @@ let test =
         let bob_payload_v : SHIFUMI.Storage.Session.action = Paper in
         let bob_payload : bytes = Bytes.pack bob_payload_v in
         let bob_secret_1 : nat = 10n in
-        let (bob_chest,bob_chest_key) = Test.create_chest bob_payload bob_secret_1 in
-        let play_args : SHIFUMI.Parameter.play_param = {sessionId=current_session_id; roundId=1n; action=bob_chest} in
+        let (bob_bytes,bob_bytes_key) = create_bytes bob_payload bob_secret_1 in
+        let play_args : SHIFUMI.Parameter.play_param = {sessionId=current_session_id; roundId=1n; action=bob_bytes} in
         //let () = Test.log(play_args) in
         let _ = Test.transfer_to_contract_exn x (Play(play_args)) 0mutez in
 
@@ -266,8 +269,8 @@ let test =
         let alice_payload_v : SHIFUMI.Storage.Session.action = Paper in
         let alice_payload : bytes = Bytes.pack alice_payload_v in
         let alice_secret_1 : nat = 654843n in
-        let (alice_chest,alice_chest_key) = Test.create_chest alice_payload alice_secret_1 in
-        let play_args : SHIFUMI.Parameter.play_param = {sessionId=current_session_id; roundId=1n; action=alice_chest} in
+        let (alice_bytes,alice_bytes_key) = create_bytes alice_payload alice_secret_1 in
+        let play_args : SHIFUMI.Parameter.play_param = {sessionId=current_session_id; roundId=1n; action=alice_bytes} in
         //let () = Test.log(play_args) in
         let _ = Test.transfer_to_contract_exn x (Play(play_args)) 0mutez in
 
@@ -278,8 +281,8 @@ let test =
         let reveal_args : SHIFUMI.Parameter.reveal_param = {
             sessionId=current_session_id;
             roundId=1n;
-            //player_chest=alice_chest;
-            player_key=alice_chest_key;
+            //player_bytes=alice_bytes;
+            player_key=alice_bytes_key;
             player_secret=alice_secret_1
         } in
         //let () = Test.log(reveal_args) in
@@ -292,8 +295,8 @@ let test =
         let bob_reveal_args : SHIFUMI.Parameter.reveal_param = {
             sessionId=current_session_id;
             roundId=1n;
-            //player_chest=bob_chest;
-            player_key=bob_chest_key;
+            //player_bytes=bob_bytes;
+            player_key=bob_bytes_key;
             player_secret=bob_secret_1
         } in
         //let () = Test.log(reveal_args) in
@@ -333,8 +336,8 @@ let test =
         let bob_payload_v : SHIFUMI.Storage.Session.action = Paper in
         let bob_payload : bytes = Bytes.pack bob_payload_v in
         let bob_secret_1 : nat = 10n in
-        let (bob_chest,bob_chest_key) = Test.create_chest bob_payload bob_secret_1 in
-        let play_args : SHIFUMI.Parameter.play_param = {sessionId=current_session_id; roundId=1n; action=bob_chest} in
+        let (bob_bytes,bob_bytes_key) = create_bytes bob_payload bob_secret_1 in
+        let play_args : SHIFUMI.Parameter.play_param = {sessionId=current_session_id; roundId=1n; action=bob_bytes} in
         let _ = Test.transfer_to_contract_exn x (Play(play_args)) 0mutez in
 
         // alice plays in (session=3n, round=1)
@@ -343,8 +346,8 @@ let test =
         let alice_payload_v : SHIFUMI.Storage.Session.action = Stone in
         let alice_payload : bytes = Bytes.pack alice_payload_v in
         let alice_secret_1 : nat = 654843n in
-        let (alice_chest,alice_chest_key) = Test.create_chest alice_payload alice_secret_1 in
-        let play_args : SHIFUMI.Parameter.play_param = {sessionId=current_session_id; roundId=1n; action=alice_chest} in
+        let (alice_bytes,alice_bytes_key) = create_bytes alice_payload alice_secret_1 in
+        let play_args : SHIFUMI.Parameter.play_param = {sessionId=current_session_id; roundId=1n; action=alice_bytes} in
         let _ = Test.transfer_to_contract_exn x (Play(play_args)) 0mutez in
 
         // alice reveals in (session=3n, round=1)
@@ -353,7 +356,7 @@ let test =
         let reveal_args : SHIFUMI.Parameter.reveal_param = {
             sessionId=current_session_id;
             roundId=1n;
-            player_key=alice_chest_key;
+            player_key=alice_bytes_key;
             player_secret=alice_secret_1
         } in
         let _ = Test.transfer_to_contract_exn x (RevealPlay(reveal_args)) 0mutez in
@@ -364,7 +367,7 @@ let test =
         let bob_reveal_args : SHIFUMI.Parameter.reveal_param = {
             sessionId=current_session_id;
             roundId=1n;
-            player_key=bob_chest_key;
+            player_key=bob_bytes_key;
             player_secret=bob_secret_1
         } in
         let _ = Test.transfer_to_contract_exn x (RevealPlay(bob_reveal_args)) 0mutez in
@@ -375,8 +378,8 @@ let test =
         let bob_payload_v : SHIFUMI.Storage.Session.action = Stone in
         let bob_payload : bytes = Bytes.pack bob_payload_v in
         let bob_secret_1 : nat = 10n in
-        let (bob_chest,bob_chest_key) = Test.create_chest bob_payload bob_secret_1 in
-        let play_args : SHIFUMI.Parameter.play_param = {sessionId=current_session_id; roundId=2n; action=bob_chest} in
+        let (bob_bytes,bob_bytes_key) = create_bytes bob_payload bob_secret_1 in
+        let play_args : SHIFUMI.Parameter.play_param = {sessionId=current_session_id; roundId=2n; action=bob_bytes} in
         let _ = Test.transfer_to_contract_exn x (Play(play_args)) 0mutez in
 
         // alice plays in (session=3n, round=2)
@@ -385,8 +388,8 @@ let test =
         let alice_payload_v : SHIFUMI.Storage.Session.action = Paper in
         let alice_payload : bytes = Bytes.pack alice_payload_v in
         let alice_secret_1 : nat = 654843n in
-        let (alice_chest,alice_chest_key) = Test.create_chest alice_payload alice_secret_1 in
-        let play_args : SHIFUMI.Parameter.play_param = {sessionId=current_session_id; roundId=2n; action=alice_chest} in
+        let (alice_bytes,alice_bytes_key) = create_bytes alice_payload alice_secret_1 in
+        let play_args : SHIFUMI.Parameter.play_param = {sessionId=current_session_id; roundId=2n; action=alice_bytes} in
         let _ = Test.transfer_to_contract_exn x (Play(play_args)) 0mutez in
 
         // alice reveals in (session=3n, round=2)
@@ -395,7 +398,7 @@ let test =
         let reveal_args : SHIFUMI.Parameter.reveal_param = {
             sessionId=current_session_id;
             roundId=2n;
-            player_key=alice_chest_key;
+            player_key=alice_bytes_key;
             player_secret=alice_secret_1
         } in
         let _ = Test.transfer_to_contract_exn x (RevealPlay(reveal_args)) 0mutez in
@@ -406,7 +409,7 @@ let test =
         let bob_reveal_args : SHIFUMI.Parameter.reveal_param = {
             sessionId=current_session_id;
             roundId=2n;
-            player_key=bob_chest_key;
+            player_key=bob_bytes_key;
             player_secret=bob_secret_1
         } in
         let _ = Test.transfer_to_contract_exn x (RevealPlay(bob_reveal_args)) 0mutez in
@@ -451,8 +454,8 @@ let test =
         let bob_payload_v : SHIFUMI.Storage.Session.action = Paper in
         let bob_payload : bytes = Bytes.pack bob_payload_v in
         let bob_secret_1 : nat = 10n in
-        let (bob_chest,_bob_chest_key) = Test.create_chest bob_payload bob_secret_1 in
-        let play_args : SHIFUMI.Parameter.play_param = {sessionId=current_session_id; roundId=1n; action=bob_chest} in
+        let (bob_bytes,_bob_bytes_key) = create_bytes bob_payload bob_secret_1 in
+        let play_args : SHIFUMI.Parameter.play_param = {sessionId=current_session_id; roundId=1n; action=bob_bytes} in
         let _ = Test.transfer_to_contract_exn x (Play(play_args)) 0mutez in
 
         // bob stops session (session=4n)
@@ -462,7 +465,7 @@ let test =
         let alice_payload_v : SHIFUMI.Storage.Session.action = Stone in
         let alice_payload : bytes = Bytes.pack alice_payload_v in
         let alice_secret_1 : nat = 654843n in
-        let (_alice_chest,_alice_chest_key) = Test.create_chest alice_payload alice_secret_1 in
+        let (_alice_bytes,_alice_bytes_key) = create_bytes alice_payload alice_secret_1 in
         let stop_args : SHIFUMI.Parameter.stopsession_param = {sessionId=current_session_id} in
         //let () = Test.log(play_args) in
         let _ = Test.transfer_to_contract_exn x (StopSession(stop_args)) 0mutez in
@@ -510,10 +513,10 @@ let test =
         let alice_payload_v : SHIFUMI.Storage.Session.action = Stone in
         let alice_payload : bytes = Bytes.pack alice_payload_v in
         let alice_secret_1 : nat = 654843n in
-        let (alice_chest,_alice_chest_key) = Test.create_chest alice_payload alice_secret_1 in
-        let play_args : SHIFUMI.Parameter.play_param = {sessionId=current_session_id; roundId=1n; action=alice_chest} in
+        let (alice_bytes,_alice_bytes_key) = create_bytes alice_payload alice_secret_1 in
+        let play_args : SHIFUMI.Parameter.play_param = {sessionId=current_session_id; roundId=1n; action=alice_bytes} in
         let _ = Test.transfer_to_contract_exn x (Play(play_args)) 0mutez in
-        // verify round 1 register alice chest
+        // verify round 1 register alice bytes
         let session_0 : SHIFUMI.Storage.Session.t = get_session_from_storage(addr, current_session_id) in
         let () = assert (session_0.current_round = 1n) in
         let () = assert (session_0.total_rounds = 1n) in
@@ -550,8 +553,8 @@ let test =
         let alice_payload_v : SHIFUMI.Storage.Session.action = Stone in
         let alice_payload : bytes = Bytes.pack alice_payload_v in
         let alice_secret_1 : nat = 654843n in
-        let (alice_chest,_alice_chest_key) = Test.create_chest alice_payload alice_secret_1 in
-        let play_args : SHIFUMI.Parameter.play_param = {sessionId=current_session_id; roundId=1n; action=alice_chest} in
+        let (alice_bytes,_alice_bytes_key) = create_bytes alice_payload alice_secret_1 in
+        let play_args : SHIFUMI.Parameter.play_param = {sessionId=current_session_id; roundId=1n; action=alice_bytes} in
         let _ = Test.transfer_to_contract_exn x (Play(play_args)) 0mutez in
 
         // alice stops session (session=6n)
@@ -581,8 +584,8 @@ let test =
         let alice_payload_v : SHIFUMI.Storage.Session.action = Stone in
         let alice_payload : bytes = Bytes.pack alice_payload_v in
         let alice_secret_1 : nat = 654843n in
-        let (alice_chest,_alice_chest_key) = Test.create_chest alice_payload alice_secret_1 in
-        let play_args : SHIFUMI.Parameter.play_param = {sessionId=current_session_id; roundId=1n; action=alice_chest} in
+        let (alice_bytes,_alice_bytes_key) = create_bytes alice_payload alice_secret_1 in
+        let play_args : SHIFUMI.Parameter.play_param = {sessionId=current_session_id; roundId=1n; action=alice_bytes} in
         let _ = Test.transfer_to_contract_exn x (Play(play_args)) 0mutez in
 
         // james stops session (session=7n)
@@ -611,8 +614,8 @@ let test =
         let bob_payload_v : SHIFUMI.Storage.Session.action = Paper in
         let bob_payload : bytes = Bytes.pack bob_payload_v in
         let bob_secret_1 : nat = 10n in
-        let (bob_chest,bob_chest_key) = Test.create_chest bob_payload bob_secret_1 in
-        let play_args : SHIFUMI.Parameter.play_param = {sessionId=current_session_id; roundId=1n; action=bob_chest} in
+        let (bob_bytes,bob_bytes_key) = create_bytes bob_payload bob_secret_1 in
+        let play_args : SHIFUMI.Parameter.play_param = {sessionId=current_session_id; roundId=1n; action=bob_bytes} in
         let _ = Test.transfer_to_contract_exn x (Play(play_args)) 0mutez in
 
         // alice plays in (session=8n, round=1)
@@ -622,8 +625,8 @@ let test =
         let alice_payload_v : SHIFUMI.Storage.Session.action = Stone in
         let alice_payload : bytes = Bytes.pack alice_payload_v in
         let alice_secret_1 : nat = 654843n in
-        let (alice_chest,alice_chest_key) = Test.create_chest alice_payload alice_secret_1 in
-        let play_args : SHIFUMI.Parameter.play_param = {sessionId=current_session_id; roundId=1n; action=alice_chest} in
+        let (alice_bytes,alice_bytes_key) = create_bytes alice_payload alice_secret_1 in
+        let play_args : SHIFUMI.Parameter.play_param = {sessionId=current_session_id; roundId=1n; action=alice_bytes} in
         let _ = Test.transfer_to_contract_exn x (Play(play_args)) 0mutez in
 
         // alice reveals
@@ -633,7 +636,7 @@ let test =
         let reveal_args : SHIFUMI.Parameter.reveal_param = {
             sessionId=current_session_id;
             roundId=1n;
-            player_key=alice_chest_key;
+            player_key=alice_bytes_key;
             player_secret=alice_secret_1
         } in
         let _ = Test.transfer_to_contract_exn x (RevealPlay(reveal_args)) 0mutez in
@@ -645,7 +648,7 @@ let test =
         let bob_reveal_args : SHIFUMI.Parameter.reveal_param = {
             sessionId=current_session_id;
             roundId=1n;
-            player_key=bob_chest_key;
+            player_key=bob_bytes_key;
             player_secret=bob_secret_1
         } in
         let _ = Test.transfer_to_contract_exn x (RevealPlay(bob_reveal_args)) 0mutez in
@@ -678,8 +681,8 @@ let test =
         let james_payload_v : SHIFUMI.Storage.Session.action = Stone in
         let james_payload : bytes = Bytes.pack james_payload_v in
         let james_secret_1 : nat = 654843n in
-        let (james_chest,_james_chest_key) = Test.create_chest james_payload james_secret_1 in
-        let play_args : SHIFUMI.Parameter.play_param = {sessionId=current_session_id; roundId=1n; action=james_chest} in
+        let (james_bytes,_james_bytes_key) = create_bytes james_payload james_secret_1 in
+        let play_args : SHIFUMI.Parameter.play_param = {sessionId=current_session_id; roundId=1n; action=james_bytes} in
         let fail_play = Test.transfer_to_contract x (Play(play_args)) 0mutez in
         assert_string_failure fail_play SHIFUMI.Errors.user_not_allowed_to_play_in_session
     in
@@ -702,8 +705,8 @@ let test =
         let alice_payload_v : SHIFUMI.Storage.Session.action = Stone in
         let alice_payload : bytes = Bytes.pack alice_payload_v in
         let alice_secret_1 : nat = 654843n in
-        let (alice_chest,_alice_chest_key) = Test.create_chest alice_payload alice_secret_1 in
-        let play_args : SHIFUMI.Parameter.play_param = {sessionId=bad_session_id; roundId=1n; action=alice_chest} in
+        let (alice_bytes,_alice_bytes_key) = create_bytes alice_payload alice_secret_1 in
+        let play_args : SHIFUMI.Parameter.play_param = {sessionId=bad_session_id; roundId=1n; action=alice_bytes} in
         let fail_play = Test.transfer_to_contract x (Play(play_args)) 0mutez in
         assert_string_failure fail_play SHIFUMI.Errors.unknown_session
     in
@@ -726,8 +729,8 @@ let test =
         let alice_payload_v : SHIFUMI.Storage.Session.action = Stone in
         let alice_payload : bytes = Bytes.pack alice_payload_v in
         let alice_secret_1 : nat = 654843n in
-        let (alice_chest,_alice_chest_key) = Test.create_chest alice_payload alice_secret_1 in
-        let play_args : SHIFUMI.Parameter.play_param = {sessionId=current_session_id; roundId=bad_round_id; action=alice_chest} in
+        let (alice_bytes,_alice_bytes_key) = create_bytes alice_payload alice_secret_1 in
+        let play_args : SHIFUMI.Parameter.play_param = {sessionId=current_session_id; roundId=bad_round_id; action=alice_bytes} in
         let fail_play = Test.transfer_to_contract x (Play(play_args)) 0mutez in
         assert_string_failure fail_play SHIFUMI.Errors.wrong_current_round
     in
@@ -749,8 +752,8 @@ let test =
         let alice_payload_v : SHIFUMI.Storage.Session.action = Stone in
         let alice_payload : bytes = Bytes.pack alice_payload_v in
         let alice_secret_1 : nat = 654843n in
-        let (alice_chest,_alice_chest_key) = Test.create_chest alice_payload alice_secret_1 in
-        let play_args : SHIFUMI.Parameter.play_param = {sessionId=current_session_id; roundId=1n; action=alice_chest} in
+        let (alice_bytes,_alice_bytes_key) = create_bytes alice_payload alice_secret_1 in
+        let play_args : SHIFUMI.Parameter.play_param = {sessionId=current_session_id; roundId=1n; action=alice_bytes} in
         let _ = Test.transfer_to_contract_exn x (Play(play_args)) 0mutez in
 
         // alice plays in (session=12n, round=1)
@@ -760,8 +763,8 @@ let test =
         let alice_payload_v2 : SHIFUMI.Storage.Session.action = Stone in
         let alice_payload2 : bytes = Bytes.pack alice_payload_v2 in
         let alice_secret_2 : nat = 357924n in
-        let (alice_chest2,_alice_chest_key2) = Test.create_chest alice_payload2 alice_secret_2 in
-        let play_args : SHIFUMI.Parameter.play_param = {sessionId=current_session_id; roundId=1n; action=alice_chest2} in
+        let (alice_bytes2,_alice_bytes_key2) = create_bytes alice_payload2 alice_secret_2 in
+        let play_args : SHIFUMI.Parameter.play_param = {sessionId=current_session_id; roundId=1n; action=alice_bytes2} in
         let fail_play = Test.transfer_to_contract x (Play(play_args)) 0mutez in
         assert_string_failure fail_play SHIFUMI.Errors.user_already_played
     in
@@ -783,8 +786,8 @@ let test =
         let bob_payload_v : SHIFUMI.Storage.Session.action = Paper in
         let bob_payload : bytes = Bytes.pack bob_payload_v in
         let bob_secret_1 : nat = 10n in
-        let (bob_chest,_bob_chest_key) = Test.create_chest bob_payload bob_secret_1 in
-        let play_args : SHIFUMI.Parameter.play_param = {sessionId=current_session_id; roundId=1n; action=bob_chest} in
+        let (bob_bytes,_bob_bytes_key) = create_bytes bob_payload bob_secret_1 in
+        let play_args : SHIFUMI.Parameter.play_param = {sessionId=current_session_id; roundId=1n; action=bob_bytes} in
         let _ = Test.transfer_to_contract_exn x (Play(play_args)) 0mutez in
 
         // alice plays in (session=8n, round=1)
@@ -794,8 +797,8 @@ let test =
         let alice_payload_v : SHIFUMI.Storage.Session.action = Stone in
         let alice_payload : bytes = Bytes.pack alice_payload_v in
         let alice_secret_1 : nat = 654843n in
-        let (alice_chest,alice_chest_key) = Test.create_chest alice_payload alice_secret_1 in
-        let play_args : SHIFUMI.Parameter.play_param = {sessionId=current_session_id; roundId=1n; action=alice_chest} in
+        let (alice_bytes,alice_bytes_key) = create_bytes alice_payload alice_secret_1 in
+        let play_args : SHIFUMI.Parameter.play_param = {sessionId=current_session_id; roundId=1n; action=alice_bytes} in
         let _ = Test.transfer_to_contract_exn x (Play(play_args)) 0mutez in
 
         // alice reveals
@@ -806,7 +809,7 @@ let test =
         let reveal_args : SHIFUMI.Parameter.reveal_param = {
             sessionId=bad_session_id;
             roundId=1n;
-            player_key=alice_chest_key;
+            player_key=alice_bytes_key;
             player_secret=alice_secret_1
         } in
         let fail_reveal = Test.transfer_to_contract x (RevealPlay(reveal_args)) 0mutez in
@@ -831,8 +834,8 @@ let test =
         let bob_payload_v : SHIFUMI.Storage.Session.action = Paper in
         let bob_payload : bytes = Bytes.pack bob_payload_v in
         let bob_secret_1 : nat = 10n in
-        let (bob_chest,_bob_chest_key) = Test.create_chest bob_payload bob_secret_1 in
-        let play_args : SHIFUMI.Parameter.play_param = {sessionId=current_session_id; roundId=1n; action=bob_chest} in
+        let (bob_bytes,_bob_bytes_key) = create_bytes bob_payload bob_secret_1 in
+        let play_args : SHIFUMI.Parameter.play_param = {sessionId=current_session_id; roundId=1n; action=bob_bytes} in
         let _ = Test.transfer_to_contract_exn x (Play(play_args)) 0mutez in
 
         // alice plays in (session=14n, round=1)
@@ -842,8 +845,8 @@ let test =
         let alice_payload_v : SHIFUMI.Storage.Session.action = Stone in
         let alice_payload : bytes = Bytes.pack alice_payload_v in
         let alice_secret_1 : nat = 654843n in
-        let (alice_chest,alice_chest_key) = Test.create_chest alice_payload alice_secret_1 in
-        let play_args : SHIFUMI.Parameter.play_param = {sessionId=current_session_id; roundId=1n; action=alice_chest} in
+        let (alice_bytes,alice_bytes_key) = create_bytes alice_payload alice_secret_1 in
+        let play_args : SHIFUMI.Parameter.play_param = {sessionId=current_session_id; roundId=1n; action=alice_bytes} in
         let _ = Test.transfer_to_contract_exn x (Play(play_args)) 0mutez in
 
         // james reveals
@@ -853,7 +856,7 @@ let test =
         let reveal_args : SHIFUMI.Parameter.reveal_param = {
             sessionId=current_session_id;
             roundId=1n;
-            player_key=alice_chest_key;
+            player_key=alice_bytes_key;
             player_secret=alice_secret_1
         } in
         let fail_reveal = Test.transfer_to_contract x (RevealPlay(reveal_args)) 0mutez in
@@ -877,8 +880,8 @@ let test =
         let bob_payload_v : SHIFUMI.Storage.Session.action = Paper in
         let bob_payload : bytes = Bytes.pack bob_payload_v in
         let bob_secret_1 : nat = 10n in
-        let (bob_chest,bob_chest_key) = Test.create_chest bob_payload bob_secret_1 in
-        let play_args : SHIFUMI.Parameter.play_param = {sessionId=current_session_id; roundId=1n; action=bob_chest} in
+        let (bob_bytes,bob_bytes_key) = create_bytes bob_payload bob_secret_1 in
+        let play_args : SHIFUMI.Parameter.play_param = {sessionId=current_session_id; roundId=1n; action=bob_bytes} in
         let _ = Test.transfer_to_contract_exn x (Play(play_args)) 0mutez in
 
         // alice plays in (session=8n, round=1)
@@ -888,8 +891,8 @@ let test =
         let alice_payload_v : SHIFUMI.Storage.Session.action = Stone in
         let alice_payload : bytes = Bytes.pack alice_payload_v in
         let alice_secret_1 : nat = 654843n in
-        let (alice_chest,alice_chest_key) = Test.create_chest alice_payload alice_secret_1 in
-        let play_args : SHIFUMI.Parameter.play_param = {sessionId=current_session_id; roundId=1n; action=alice_chest} in
+        let (alice_bytes,alice_bytes_key) = create_bytes alice_payload alice_secret_1 in
+        let play_args : SHIFUMI.Parameter.play_param = {sessionId=current_session_id; roundId=1n; action=alice_bytes} in
         let _ = Test.transfer_to_contract_exn x (Play(play_args)) 0mutez in
 
         // alice reveals
@@ -899,7 +902,7 @@ let test =
         let reveal_args : SHIFUMI.Parameter.reveal_param = {
             sessionId=current_session_id;
             roundId=1n;
-            player_key=alice_chest_key;
+            player_key=alice_bytes_key;
             player_secret=alice_secret_1
         } in
         let _ = Test.transfer_to_contract_exn x (RevealPlay(reveal_args)) 0mutez in
@@ -912,13 +915,13 @@ let test =
         let bob_reveal_args : SHIFUMI.Parameter.reveal_param = {
             sessionId=current_session_id;
             roundId=bad_round_id;
-            player_key=bob_chest_key;
+            player_key=bob_bytes_key;
             player_secret=bob_secret_1
         } in
         let fail_reveal = Test.transfer_to_contract x (RevealPlay(bob_reveal_args)) 0mutez in
         assert_string_failure fail_reveal SHIFUMI.Errors.wrong_current_round
     in
-    let _session_16_reveal_fail_missing_chest =
+    let _session_16_reveal_fail_missing_bytes =
         let x : SHIFUMI.parameter contract = Test.to_contract addr in
 
         // alice create session
@@ -936,8 +939,8 @@ let test =
         let bob_payload_v : SHIFUMI.Storage.Session.action = Paper in
         let bob_payload : bytes = Bytes.pack bob_payload_v in
         let bob_secret_1 : nat = 10n in
-        let (bob_chest,bob_chest_key) = Test.create_chest bob_payload bob_secret_1 in
-        let play_args : SHIFUMI.Parameter.play_param = {sessionId=current_session_id; roundId=1n; action=bob_chest} in
+        let (bob_bytes,bob_bytes_key) = create_bytes bob_payload bob_secret_1 in
+        let play_args : SHIFUMI.Parameter.play_param = {sessionId=current_session_id; roundId=1n; action=bob_bytes} in
         let _ = Test.transfer_to_contract_exn x (Play(play_args)) 0mutez in
 
         // bob reveals
@@ -947,13 +950,13 @@ let test =
         let bob_reveal_args : SHIFUMI.Parameter.reveal_param = {
             sessionId=current_session_id;
             roundId=1n;
-            player_key=bob_chest_key;
+            player_key=bob_bytes_key;
             player_secret=bob_secret_1
         } in
         let fail_reveal = Test.transfer_to_contract x (RevealPlay(bob_reveal_args)) 0mutez in
-        assert_string_failure fail_reveal SHIFUMI.Errors.missing_player_chest
+        assert_string_failure fail_reveal SHIFUMI.Errors.missing_player_bytes
     in
-    let _session_17_reveal_fail_missing_all_chests =
+    let _session_17_reveal_fail_missing_all_bytess =
         let x : SHIFUMI.parameter contract = Test.to_contract addr in
 
         // alice create session
@@ -964,14 +967,14 @@ let test =
         let current_session_id : nat = 17n in
         let _ = Test.transfer_to_contract_exn x (CreateSession(session_args)) 0mutez in
 
-        // bob create its chest but do not play in (session=17n, round=1)
+        // bob create its bytes but do not play in (session=17n, round=1)
         let () = Test.log("bob plays in session 17 round 1") in
         let () = Test.set_source bob in
         let () = Test.bake_until_n_cycle_end 5n in
         let bob_payload_v : SHIFUMI.Storage.Session.action = Paper in
         let bob_payload : bytes = Bytes.pack bob_payload_v in
         let bob_secret_1 : nat = 10n in
-        let (_bob_chest,bob_chest_key) = Test.create_chest bob_payload bob_secret_1 in
+        let (_bob_bytes,bob_bytes_key) = create_bytes bob_payload bob_secret_1 in
 
         // bob reveals
         let () = Test.log("bob reveals in session 17 round 1") in
@@ -980,13 +983,13 @@ let test =
         let bob_reveal_args : SHIFUMI.Parameter.reveal_param = {
             sessionId=current_session_id;
             roundId=1n;
-            player_key=bob_chest_key;
+            player_key=bob_bytes_key;
             player_secret=bob_secret_1
         } in
         let fail_reveal = Test.transfer_to_contract x (RevealPlay(bob_reveal_args)) 0mutez in
-        assert_string_failure fail_reveal SHIFUMI.Errors.missing_all_chests
+        assert_string_failure fail_reveal SHIFUMI.Errors.missing_all_bytes
     in
-    let _session_18_reveal_fail_open_chest_timelock =
+    let _session_18_reveal_fail_open_bytes_timelock =
         let x : SHIFUMI.parameter contract = Test.to_contract addr in
 
         // alice create session
@@ -1004,8 +1007,8 @@ let test =
         let bob_payload_v : SHIFUMI.Storage.Session.action = Paper in
         let bob_payload : bytes = Bytes.pack bob_payload_v in
         let bob_secret_1 : nat = 10n in
-        let (bob_chest,bob_chest_key) = Test.create_chest bob_payload bob_secret_1 in
-        let play_args : SHIFUMI.Parameter.play_param = {sessionId=current_session_id; roundId=1n; action=bob_chest} in
+        let (bob_bytes,bob_bytes_key) = create_bytes bob_payload bob_secret_1 in
+        let play_args : SHIFUMI.Parameter.play_param = {sessionId=current_session_id; roundId=1n; action=bob_bytes} in
         let _ = Test.transfer_to_contract_exn x (Play(play_args)) 0mutez in
 
         // alice plays in (session=8n, round=1)
@@ -1015,8 +1018,8 @@ let test =
         let alice_payload_v : SHIFUMI.Storage.Session.action = Stone in
         let alice_payload : bytes = Bytes.pack alice_payload_v in
         let alice_secret_1 : nat = 654843n in
-        let (alice_chest,alice_chest_key) = Test.create_chest alice_payload alice_secret_1 in
-        let play_args : SHIFUMI.Parameter.play_param = {sessionId=current_session_id; roundId=1n; action=alice_chest} in
+        let (alice_bytes,alice_bytes_key) = create_bytes alice_payload alice_secret_1 in
+        let play_args : SHIFUMI.Parameter.play_param = {sessionId=current_session_id; roundId=1n; action=alice_bytes} in
         let _ = Test.transfer_to_contract_exn x (Play(play_args)) 0mutez in
 
         // alice reveals
@@ -1026,7 +1029,7 @@ let test =
         let reveal_args : SHIFUMI.Parameter.reveal_param = {
             sessionId=current_session_id;
             roundId=1n;
-            player_key=alice_chest_key;
+            player_key=alice_bytes_key;
             player_secret=alice_secret_1
         } in
         let _ = Test.transfer_to_contract_exn x (RevealPlay(reveal_args)) 0mutez in
@@ -1039,13 +1042,13 @@ let test =
         let bob_reveal_args : SHIFUMI.Parameter.reveal_param = {
             sessionId=current_session_id;
             roundId=1n;
-            player_key=bob_chest_key;
+            player_key=bob_bytes_key;
             player_secret=bad_secret_bob
         } in
         let fail_reveal = Test.transfer_to_contract x (RevealPlay(bob_reveal_args)) 0mutez in
-        assert_string_failure fail_reveal SHIFUMI.Errors.failed_to_open_chest
+        assert_string_failure fail_reveal SHIFUMI.Errors.failed_to_open_bytes
     in
-    let _session_19_reveal_fail_open_chest_key =
+    let _session_19_reveal_fail_open_bytes_key =
         let x : SHIFUMI.parameter contract = Test.to_contract addr in
 
         // alice create session
@@ -1063,8 +1066,8 @@ let test =
         let bob_payload_v : SHIFUMI.Storage.Session.action = Paper in
         let bob_payload : bytes = Bytes.pack bob_payload_v in
         let bob_secret_1 : nat = 10n in
-        let (bob_chest,_bob_chest_key) = Test.create_chest bob_payload bob_secret_1 in
-        let play_args : SHIFUMI.Parameter.play_param = {sessionId=current_session_id; roundId=1n; action=bob_chest} in
+        let (bob_bytes,_bob_bytes_key) = create_bytes bob_payload bob_secret_1 in
+        let play_args : SHIFUMI.Parameter.play_param = {sessionId=current_session_id; roundId=1n; action=bob_bytes} in
         let _ = Test.transfer_to_contract_exn x (Play(play_args)) 0mutez in
 
         // alice plays in (session=19n, round=1)
@@ -1074,8 +1077,8 @@ let test =
         let alice_payload_v : SHIFUMI.Storage.Session.action = Stone in
         let alice_payload : bytes = Bytes.pack alice_payload_v in
         let alice_secret_1 : nat = 654843n in
-        let (alice_chest,alice_chest_key) = Test.create_chest alice_payload alice_secret_1 in
-        let play_args : SHIFUMI.Parameter.play_param = {sessionId=current_session_id; roundId=1n; action=alice_chest} in
+        let (alice_bytes,alice_bytes_key) = create_bytes alice_payload alice_secret_1 in
+        let play_args : SHIFUMI.Parameter.play_param = {sessionId=current_session_id; roundId=1n; action=alice_bytes} in
         let _ = Test.transfer_to_contract_exn x (Play(play_args)) 0mutez in
 
         // alice reveals
@@ -1085,7 +1088,7 @@ let test =
         let reveal_args : SHIFUMI.Parameter.reveal_param = {
             sessionId=current_session_id;
             roundId=1n;
-            player_key=alice_chest_key;
+            player_key=alice_bytes_key;
             player_secret=alice_secret_1
         } in
         let _ = Test.transfer_to_contract_exn x (RevealPlay(reveal_args)) 0mutez in
@@ -1095,19 +1098,19 @@ let test =
         let () = Test.set_source bob in
         let () = Test.bake_until_n_cycle_end 5n in
 
-        let bob_payload_v2 : SHIFUMI.Storage.Session.action = Paper in
+        let bob_payload_v2 : SHIFUMI.Storage.Session.action = Stone in
         let bob_payload2 : bytes = Bytes.pack bob_payload_v2 in
         let bob_secret_2 : nat = 10n in
-        let (_bob_chest2,bob_chest_key2) = Test.create_chest bob_payload2 bob_secret_2 in
+        let (_bob_bytes2,bob_bytes_key2) = create_bytes bob_payload2 bob_secret_2 in
 
         let bob_reveal_args : SHIFUMI.Parameter.reveal_param = {
             sessionId=current_session_id;
             roundId=1n;
-            player_key=bob_chest_key2;
+            player_key=bob_bytes_key2;
             player_secret=bob_secret_1
         } in
         let fail_reveal = Test.transfer_to_contract x (RevealPlay(bob_reveal_args)) 0mutez in
-        assert_string_failure fail_reveal SHIFUMI.Errors.failed_to_open_chest
+        assert_string_failure fail_reveal SHIFUMI.Errors.failed_to_open_bytes
     in
     let _session_20_reveal_fail_already_revealed =
         let x : SHIFUMI.parameter contract = Test.to_contract addr in
@@ -1127,8 +1130,8 @@ let test =
         let bob_payload_v : SHIFUMI.Storage.Session.action = Paper in
         let bob_payload : bytes = Bytes.pack bob_payload_v in
         let bob_secret_1 : nat = 10n in
-        let (bob_chest,bob_chest_key) = Test.create_chest bob_payload bob_secret_1 in
-        let play_args : SHIFUMI.Parameter.play_param = {sessionId=current_session_id; roundId=1n; action=bob_chest} in
+        let (bob_bytes,bob_bytes_key) = create_bytes bob_payload bob_secret_1 in
+        let play_args : SHIFUMI.Parameter.play_param = {sessionId=current_session_id; roundId=1n; action=bob_bytes} in
         let _ = Test.transfer_to_contract_exn x (Play(play_args)) 0mutez in
 
         // alice plays in (session=20n, round=1)
@@ -1138,8 +1141,8 @@ let test =
         let alice_payload_v : SHIFUMI.Storage.Session.action = Stone in
         let alice_payload : bytes = Bytes.pack alice_payload_v in
         let alice_secret_1 : nat = 654843n in
-        let (alice_chest,_alice_chest_key) = Test.create_chest alice_payload alice_secret_1 in
-        let play_args : SHIFUMI.Parameter.play_param = {sessionId=current_session_id; roundId=1n; action=alice_chest} in
+        let (alice_bytes,_alice_bytes_key) = create_bytes alice_payload alice_secret_1 in
+        let play_args : SHIFUMI.Parameter.play_param = {sessionId=current_session_id; roundId=1n; action=alice_bytes} in
         let _ = Test.transfer_to_contract_exn x (Play(play_args)) 0mutez in
 
         // bob reveals
@@ -1149,7 +1152,7 @@ let test =
         let bob_reveal_args : SHIFUMI.Parameter.reveal_param = {
             sessionId=current_session_id;
             roundId=1n;
-            player_key=bob_chest_key;
+            player_key=bob_bytes_key;
             player_secret=bob_secret_1
         } in
         let _ = Test.transfer_to_contract x (RevealPlay(bob_reveal_args)) 0mutez in
@@ -1161,7 +1164,7 @@ let test =
         let bob_reveal_args : SHIFUMI.Parameter.reveal_param = {
             sessionId=current_session_id;
             roundId=1n;
-            player_key=bob_chest_key;
+            player_key=bob_bytes_key;
             player_secret=bob_secret_1
         } in
         let fail_reveal = Test.transfer_to_contract x (RevealPlay(bob_reveal_args)) 0mutez in
@@ -1185,8 +1188,8 @@ let test =
         let bob_payload_v : SHIFUMI.Storage.Session.action = Paper in
         let bob_payload : bytes = Bytes.pack bob_payload_v in
         let bob_secret_1 : nat = 10n in
-        let (bob_chest,bob_chest_key) = Test.create_chest bob_payload bob_secret_1 in
-        let play_args : SHIFUMI.Parameter.play_param = {sessionId=current_session_id; roundId=1n; action=bob_chest} in
+        let (bob_bytes,bob_bytes_key) = create_bytes bob_payload bob_secret_1 in
+        let play_args : SHIFUMI.Parameter.play_param = {sessionId=current_session_id; roundId=1n; action=bob_bytes} in
         let _ = Test.transfer_to_contract_exn x (Play(play_args)) 0mutez in
 
         // alice plays in (session=20n, round=1)
@@ -1196,8 +1199,8 @@ let test =
         let alice_payload_v : SHIFUMI.Storage.Session.action = Stone in
         let alice_payload : bytes = Bytes.pack alice_payload_v in
         let alice_secret_1 : nat = 654843n in
-        let (alice_chest,alice_chest_key) = Test.create_chest alice_payload alice_secret_1 in
-        let play_args : SHIFUMI.Parameter.play_param = {sessionId=current_session_id; roundId=1n; action=alice_chest} in
+        let (alice_bytes,alice_bytes_key) = create_bytes alice_payload alice_secret_1 in
+        let play_args : SHIFUMI.Parameter.play_param = {sessionId=current_session_id; roundId=1n; action=alice_bytes} in
         let _ = Test.transfer_to_contract_exn x (Play(play_args)) 0mutez in
 
         // alice reveals
@@ -1207,7 +1210,7 @@ let test =
         let reveal_args : SHIFUMI.Parameter.reveal_param = {
             sessionId=current_session_id;
             roundId=1n;
-            player_key=alice_chest_key;
+            player_key=alice_bytes_key;
             player_secret=alice_secret_1
         } in
         let _ = Test.transfer_to_contract_exn x (RevealPlay(reveal_args)) 0mutez in
@@ -1219,7 +1222,7 @@ let test =
         let bob_reveal_args : SHIFUMI.Parameter.reveal_param = {
             sessionId=current_session_id;
             roundId=1n;
-            player_key=bob_chest_key;
+            player_key=bob_bytes_key;
             player_secret=bob_secret_1
         } in
         let _ = Test.transfer_to_contract x (RevealPlay(bob_reveal_args)) 0mutez in
@@ -1231,7 +1234,7 @@ let test =
         let bob_reveal_args : SHIFUMI.Parameter.reveal_param = {
             sessionId=current_session_id;
             roundId=1n;
-            player_key=bob_chest_key;
+            player_key=bob_bytes_key;
             player_secret=bob_secret_1
         } in
         let fail_reveal = Test.transfer_to_contract x (RevealPlay(bob_reveal_args)) 0mutez in
@@ -1255,8 +1258,8 @@ let test =
         let bob_payload_v : SHIFUMI.Storage.Session.action = Paper in
         let bob_payload : bytes = Bytes.pack bob_payload_v in
         let bob_secret_1 : nat = 10n in
-        let (bob_chest,_bob_chest_key) = Test.create_chest bob_payload bob_secret_1 in
-        let play_args : SHIFUMI.Parameter.play_param = {sessionId=current_session_id; roundId=1n; action=bob_chest} in
+        let (bob_bytes,_bob_bytes_key) = create_bytes bob_payload bob_secret_1 in
+        let play_args : SHIFUMI.Parameter.play_param = {sessionId=current_session_id; roundId=1n; action=bob_bytes} in
         let _ = Test.transfer_to_contract_exn x (Play(play_args)) 0mutez in
 
         // alice plays in (session=22n, round=1)
@@ -1267,8 +1270,8 @@ let test =
         let alice_payload_str : string = "Stone" in
         let alice_payload : bytes = Bytes.pack alice_payload_str in
         let alice_secret_1 : nat = 654843n in
-        let (alice_chest,alice_chest_key) = Test.create_chest alice_payload alice_secret_1 in
-        let play_args : SHIFUMI.Parameter.play_param = {sessionId=current_session_id; roundId=1n; action=alice_chest} in
+        let (alice_bytes,alice_bytes_key) = create_bytes alice_payload alice_secret_1 in
+        let play_args : SHIFUMI.Parameter.play_param = {sessionId=current_session_id; roundId=1n; action=alice_bytes} in
         let _ = Test.transfer_to_contract_exn x (Play(play_args)) 0mutez in
 
         // alice reveals
@@ -1278,7 +1281,7 @@ let test =
         let reveal_args : SHIFUMI.Parameter.reveal_param = {
             sessionId=current_session_id;
             roundId=1n;
-            player_key=alice_chest_key;
+            player_key=alice_bytes_key;
             player_secret=alice_secret_1
         } in
         let fail_reveal = Test.transfer_to_contract x (RevealPlay(reveal_args)) 0mutez in
