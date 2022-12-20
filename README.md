@@ -40,7 +40,9 @@ The repository provides a Makefile for compiling the smart contract Shifumi.
 ```sh
 make compile
 ```
+
 You can also override `make` parameters by running :
+
 ```sh
 make compile ligo_compiler=<LIGO_EXECUTABLE> protocol_opt="--protocol <PROTOCOL>"
 ```
@@ -59,15 +61,8 @@ make test
 
 The repository provides a deployment script for deploying the smart contract Shifumi.
 
-```sh
-make sandbox-start
+```
 make deploy
 ```
 
-It is based on a .env file that contains deployment information:
-
-```sh
-ADMIN_PK - private key
-ADMIN_ADDRESS - public key
-RPC - URL of the RPC node that will process the transaction
-```
+You have to rename `deploy/.env.dist` to `deploy/.env` and **fill the required variables** to be able to deploy.
