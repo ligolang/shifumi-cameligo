@@ -8,10 +8,10 @@
     "authors": [
         "smart-chain <tezos@smart-chain.fr>"
     ],
-    "homepage": "https://github.com/ligolang/shifumi-cameligo",
+    "homepage": "https://github.com/ligolang/shifumi-jsligo",
     "source": {
-        "tools": "cameligo",
-        "location": "https://github.com/smart-chain-fr/ligolib/dao/contracts"
+        "tools": "jsligo",
+        "location": "https://github.com/ligolang/shifumi-jsligo/contracts"
     },
     "interfaces": [
         "TZIP-016"
