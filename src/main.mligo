@@ -100,7 +100,7 @@ let reveal (param, store : Parameter.reveal_param * Storage.t) : operation list 
     (([]: operation list), new_storage)
 
 
-let main(ep, store : parameter * storage) : return =
+let main (ep : parameter) (store : storage) : return =
     match ep with
     | CreateSession(p) -> createSession(p, store)
     | Play(p) -> play(p, store)
