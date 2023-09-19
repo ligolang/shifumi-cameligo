@@ -10,7 +10,7 @@ type parameter = Parameter.t
 type return = operation list * storage
 
 // Anyone can create a session (must specify players and number of rounds)
-let createSession(param, store : Parameter.createsession_param * Storage.t) : operation list * Storage.t =
+[@entry] let createSession(param : Parameter.createsession_param) (store : Storage.t) : operation list * Storage.t =
     let new_session : Session.t = Session.new param.total_rounds param.players in
     let new_storage : Storage.t = {store with next_session=store.next_session + 1n; sessions=Map.add store.next_session new_session store.sessions} in
     (([]: operation list), new_storage)
@@ -28,7 +28,7 @@ let find_me_a_name(sessionId, missing_players, current_session, store :nat * Ses
     (([]: operation list), new_storage )
 
 // allow players to claim victory if opponent is a troller (refuse to play)
-let stopSession(param, store : Parameter.stopsession_param * Storage.t) : operation list * Storage.t =
+[@entry] let stopSession(param : Parameter.stopsession_param) (store : Storage.t) : operation list * Storage.t =
     let current_session : Session.t = Storage.getSession(param.sessionId, store) in
     let _check_players : unit = Conditions.check_player_authorized (Tezos.get_sender ()) current_session.players Errors.user_not_allowed_to_stop_session in
     let _check_session_end : unit = Conditions.check_session_end current_session.result Inplay in
@@ -54,7 +54,7 @@ let stopSession(param, store : Parameter.stopsession_param * Storage.t) : operat
 
 // the player create a bytes with the chosen action (Stone | Paper | Cisor) in backend
 // once the bytes is created, the player send its bytes to the smart contract
-let play(param, store : Parameter.play_param * Storage.t) : operation list * Storage.t =
+[@entry] let play(param : Parameter.play_param) (store : Storage.t) : operation list * Storage.t =
     let current_session : Session.t = Storage.getSession(param.sessionId, store) in
     let sender = Tezos.get_sender () in
     let _check_players : unit = Conditions.check_player_authorized sender current_session.players Errors.user_not_allowed_to_play_in_session in
@@ -69,7 +69,7 @@ let play(param, store : Parameter.play_param * Storage.t) : operation list * Sto
 
 
 // Once all players have committed their bytes, they must reveal the content of their bytes
-let reveal (param, store : Parameter.reveal_param * Storage.t) : operation list * Storage.t =
+[@entry] let revealPlay (param : Parameter.reveal_param) (store : Storage.t) : operation list * Storage.t =
     // players can reveal only if all players have sent their bytes
     let current_session : Session.t = Storage.getSession(param.sessionId, store) in
     let sender = Tezos.get_sender () in
@@ -100,15 +100,7 @@ let reveal (param, store : Parameter.reveal_param * Storage.t) : operation list 
     (([]: operation list), new_storage)
 
 
-let main (ep : parameter) (store : storage) : return =
-    match ep with
-    | CreateSession(p) -> createSession(p, store)
-    | Play(p) -> play(p, store)
-    | RevealPlay (r) -> reveal(r, store)
-    | StopSession (c) -> stopSession(c, store)
-
-
-[@view] let board(sessionId, store: nat * storage): Views.sessionBoard =
+[@view] let board(sessionId: nat) (store: storage): Views.sessionBoard =
     match Map.find_opt sessionId store.sessions with
     | Some (sess) -> Views.retrieve_board(sess)
     | None -> (failwith("Unknown session") : Views.sessionBoard)
