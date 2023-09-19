@@ -21,12 +21,12 @@ let test =
         next_session=0n;
         sessions=(Map.empty : (nat, SHIFUMI.Storage.Session.t) map)
     } in
-    let (addr,_,_) = Test.originate SHIFUMI.main init_storage 0tez in
+    let (addr,_,_) = Test.originate_module (contract_of SHIFUMI) init_storage 0tez in
     let s_init = Test.get_storage addr in
     let () = Test.log(s_init) in
 
 
-    let get_session_from_storage(contract_address, sessionId : (SHIFUMI.parameter, SHIFUMI.storage) typed_address * nat) : SHIFUMI.Storage.Session.t =
+    let get_session_from_storage(contract_address, sessionId : (SHIFUMI parameter_of, SHIFUMI.storage) typed_address * nat) : SHIFUMI.Storage.Session.t =
         let storage_with_session : SHIFUMI.Storage.t = Test.get_storage contract_address in
         let session_x : SHIFUMI.Storage.Session.t = match Map.find_opt sessionId storage_with_session.sessions with
         | None -> failwith("could not find session 0")
@@ -52,7 +52,7 @@ let test =
     in
 
     let _session_0_complete_1_round_paper_stone =
-        let x : SHIFUMI.parameter contract = Test.to_contract addr in
+        let x : SHIFUMI parameter_of contract = Test.to_contract addr in
 
         // alice create session
         let () = Test.log("alice create session") in
@@ -165,7 +165,7 @@ let test =
         Test.log("test finished")
     in
     let _session_1_partial_1_round_paper_stone =
-        let x : SHIFUMI.parameter contract = Test.to_contract addr in
+        let x : SHIFUMI parameter_of contract = Test.to_contract addr in
 
         // alice create session
         let () = Test.log("alice create session") in
@@ -242,7 +242,7 @@ let test =
         Test.log("test finished")
     in
     let _session_2_complete_1_round_paper_paper_finish_in_draw =
-        let x : SHIFUMI.parameter contract = Test.to_contract addr in
+        let x : SHIFUMI parameter_of contract = Test.to_contract addr in
 
         // alice create session
         let () = Test.log("alice create session") in
@@ -320,7 +320,7 @@ let test =
         Test.log("test finished")
     in
     let _session_3_complete_1_round_paper_paper_finish_in_draw =
-        let x : SHIFUMI.parameter contract = Test.to_contract addr in
+        let x : SHIFUMI parameter_of contract = Test.to_contract addr in
 
         // alice create session
         let () = Test.log("alice create session") in
@@ -437,7 +437,7 @@ let test =
         Test.log("test finished")
     in
     let _session_4_partial_stopped =
-        let x : SHIFUMI.parameter contract = Test.to_contract addr in
+        let x : SHIFUMI parameter_of contract = Test.to_contract addr in
 
         // alice create session
         let () = Test.log("alice create session") in
@@ -482,7 +482,7 @@ let test =
     in
 
     let _session_5_stop_session_fail_unknown_session =
-        let x : SHIFUMI.parameter contract = Test.to_contract addr in
+        let x : SHIFUMI parameter_of contract = Test.to_contract addr in
 
         // alice create session
         let () = Test.log("alice create session 5") in
@@ -536,7 +536,7 @@ let test =
         assert_string_failure fail_stop_session SHIFUMI.Errors.unknown_session
     in
     let _session_6_stop_session_fail_too_early =
-        let x : SHIFUMI.parameter contract = Test.to_contract addr in
+        let x : SHIFUMI parameter_of contract = Test.to_contract addr in
 
         // alice create session
         let () = Test.log("alice create session 6") in
@@ -567,7 +567,7 @@ let test =
         assert_string_failure fail_stop_session SHIFUMI.Errors.must_wait_10_min
     in
     let _session_7_stop_session_fail_unauthorized_user =
-        let x : SHIFUMI.parameter contract = Test.to_contract addr in
+        let x : SHIFUMI parameter_of contract = Test.to_contract addr in
 
         // alice create session
         let () = Test.log("alice create session 7") in
@@ -597,7 +597,7 @@ let test =
         assert_string_failure fail_stop_session SHIFUMI.Errors.user_not_allowed_to_stop_session
     in
     let _session_8_stop_session_fail_session_finished =
-        let x : SHIFUMI.parameter contract = Test.to_contract addr in
+        let x : SHIFUMI parameter_of contract = Test.to_contract addr in
 
         // alice create session
         let () = Test.log("alice create session 8") in
@@ -664,7 +664,7 @@ let test =
 
     in
     let _session_9_play_fail_unauthorized_user =
-        let x : SHIFUMI.parameter contract = Test.to_contract addr in
+        let x : SHIFUMI parameter_of contract = Test.to_contract addr in
 
         // alice create session
         let () = Test.log("alice create session 9") in
@@ -687,7 +687,7 @@ let test =
         assert_string_failure fail_play SHIFUMI.Errors.user_not_allowed_to_play_in_session
     in
     let _session_10_play_fail_unknown_session =
-        let x : SHIFUMI.parameter contract = Test.to_contract addr in
+        let x : SHIFUMI parameter_of contract = Test.to_contract addr in
 
         // alice create session
         let () = Test.log("alice create session 10") in
@@ -711,7 +711,7 @@ let test =
         assert_string_failure fail_play SHIFUMI.Errors.unknown_session
     in
     let _session_11_play_fail_wrong_current_round =
-        let x : SHIFUMI.parameter contract = Test.to_contract addr in
+        let x : SHIFUMI parameter_of contract = Test.to_contract addr in
 
         // alice create session
         let () = Test.log("alice create session 11") in
@@ -735,7 +735,7 @@ let test =
         assert_string_failure fail_play SHIFUMI.Errors.wrong_current_round
     in
     let _session_12_play_fail_already_played =
-        let x : SHIFUMI.parameter contract = Test.to_contract addr in
+        let x : SHIFUMI parameter_of contract = Test.to_contract addr in
 
         // alice create session
         let () = Test.log("alice create session 12") in
@@ -769,7 +769,7 @@ let test =
         assert_string_failure fail_play SHIFUMI.Errors.user_already_played
     in
     let _session_13_reveal_fail_unknown_session =
-        let x : SHIFUMI.parameter contract = Test.to_contract addr in
+        let x : SHIFUMI parameter_of contract = Test.to_contract addr in
 
         // alice create session
         let () = Test.log("alice create session 13") in
@@ -817,7 +817,7 @@ let test =
     in
 
     let _session_14_reveal_fail_unauthorized_user =
-        let x : SHIFUMI.parameter contract = Test.to_contract addr in
+        let x : SHIFUMI parameter_of contract = Test.to_contract addr in
 
         // alice create session
         let () = Test.log("alice create session 14") in
@@ -863,7 +863,7 @@ let test =
         assert_string_failure fail_reveal SHIFUMI.Errors.user_not_allowed_to_reveal_in_session
     in
     let _session_15_reveal_fail_wrong_current_round =
-        let x : SHIFUMI.parameter contract = Test.to_contract addr in
+        let x : SHIFUMI parameter_of contract = Test.to_contract addr in
 
         // alice create session
         let () = Test.log("alice create session 15") in
@@ -922,7 +922,7 @@ let test =
         assert_string_failure fail_reveal SHIFUMI.Errors.wrong_current_round
     in
     let _session_16_reveal_fail_missing_bytes =
-        let x : SHIFUMI.parameter contract = Test.to_contract addr in
+        let x : SHIFUMI parameter_of contract = Test.to_contract addr in
 
         // alice create session
         let () = Test.log("alice create session 16") in
@@ -957,7 +957,7 @@ let test =
         assert_string_failure fail_reveal SHIFUMI.Errors.missing_player_bytes
     in
     let _session_17_reveal_fail_missing_all_bytess =
-        let x : SHIFUMI.parameter contract = Test.to_contract addr in
+        let x : SHIFUMI parameter_of contract = Test.to_contract addr in
 
         // alice create session
         let () = Test.log("alice create session 17") in
@@ -990,7 +990,7 @@ let test =
         assert_string_failure fail_reveal SHIFUMI.Errors.missing_all_bytes
     in
     let _session_18_reveal_fail_open_bytes_timelock =
-        let x : SHIFUMI.parameter contract = Test.to_contract addr in
+        let x : SHIFUMI parameter_of contract = Test.to_contract addr in
 
         // alice create session
         let () = Test.log("alice create session 18") in
@@ -1049,7 +1049,7 @@ let test =
         assert_string_failure fail_reveal SHIFUMI.Errors.failed_to_open_bytes
     in
     let _session_19_reveal_fail_open_bytes_key =
-        let x : SHIFUMI.parameter contract = Test.to_contract addr in
+        let x : SHIFUMI parameter_of contract = Test.to_contract addr in
 
         // alice create session
         let () = Test.log("alice create session 19") in
@@ -1113,7 +1113,7 @@ let test =
         assert_string_failure fail_reveal SHIFUMI.Errors.failed_to_open_bytes
     in
     let _session_20_reveal_fail_already_revealed =
-        let x : SHIFUMI.parameter contract = Test.to_contract addr in
+        let x : SHIFUMI parameter_of contract = Test.to_contract addr in
 
         // alice create session
         let () = Test.log("alice create session 20") in
@@ -1171,7 +1171,7 @@ let test =
         assert_string_failure fail_reveal SHIFUMI.Errors.user_already_revealed
     in
     let _session_21_reveal_fail_session_finished =
-        let x : SHIFUMI.parameter contract = Test.to_contract addr in
+        let x : SHIFUMI parameter_of contract = Test.to_contract addr in
 
         // alice create session
         let () = Test.log("alice create session 21") in
@@ -1241,7 +1241,7 @@ let test =
         assert_string_failure fail_reveal SHIFUMI.Errors.session_finished
     in
     let _session_22_reveal_fail_session_finished =
-        let x : SHIFUMI.parameter contract = Test.to_contract addr in
+        let x : SHIFUMI parameter_of contract = Test.to_contract addr in
 
         // alice create session
         let () = Test.log("alice create session 22") in
@@ -1288,7 +1288,7 @@ let test =
         assert_string_failure fail_reveal SHIFUMI.Errors.failed_to_unpack_payload
     in
     let _session_23_stop_session_all_troller =
-        let x : SHIFUMI.parameter contract = Test.to_contract addr in
+        let x : SHIFUMI parameter_of contract = Test.to_contract addr in
 
         // alice create session
         let () = Test.log("alice create session 23") in
