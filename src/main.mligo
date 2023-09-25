@@ -6,7 +6,6 @@
 #import "conditions.mligo" "Conditions"
 
 type storage = Storage.t
-type parameter = Parameter.t
 type return = operation list * storage
 
 // Anyone can create a session (must specify players and number of rounds)

@@ -23,5 +23,3 @@ type reveal_param = {
     player_key : bytes;
     player_secret : nat
 }
-
-type t = CreateSession of createsession_param | Play of play_param | RevealPlay of reveal_param | StopSession of stopsession_param
